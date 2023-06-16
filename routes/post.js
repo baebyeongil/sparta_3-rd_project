@@ -1,12 +1,10 @@
 const express = require("express")
 const router = express.Router()
 const Posts = require("../schemas/post.js")
-const { title } = require("process")
-const { truncate } = require("fs")
 
 // 전체 게시글 조회
 router.get("/posts", async (req, res) => {
-    const allPosts = await posts.find()
+    const allPosts = await Posts.find()
     allPosts.sort(
         function (prev, next) {
             if (prev.date > next.date) { return -1 }
@@ -24,12 +22,13 @@ router.get("/posts", async (req, res) => {
 })
 
 // 해당 title을 가진 게시글 조회
-router.get("/posts/:title", async (req, res) => {
-    const title = req.params.title
-    const post = await Posts.find({ "title": title })
+router.get("/posts/:postId", async (req, res) => {
+    const postId = req.params.postId
+    console.log(postId)
+    const post = await Posts.find({ "postId": postId })
     if (!post.length) {
         return res.status(404).json({
-            errorMessage: "해당 제목의 게시글을 찾을 수 없습니다.."
+            errorMessage: "해당 게시글을 찾을 수 없습니다.."
         })
     }
     else {
@@ -38,23 +37,30 @@ router.get("/posts/:title", async (req, res) => {
 })
 
 // 게시글 작성 ( 중복 비밀번호 사용 불가능 )
-router.post("/post", async (req, res) => {
-    const { title, name, datail, date, pw } = req.body
-    const posts = await Posts.find({ pw })
-    if (posts.length) {
+router.post("/posts", async (req, res) => {
+    const { postId, title, name, datail, date, pw } = req.body
+    const postspw = await Posts.find({pw})
+    const postsid = await Posts.find({postId})
+    if (postspw.length) {
         return res.status(400).json({
             success: false,
             errorMessage: "이미 사용된 비밀번호 입니다."
         })
     }
-    const creatdPost = await Posts.create({ title, name, datail, date, pw })
-    res.status(201).json({ creatdPost });
+    else if (postsid.length) {
+        return res.status(400).json({
+            success: false,
+            errorMessage: "이미 사용된 postId 입니다."
+        })
+    }
+    const creatdPost = await Posts.create({ postId, title, name, datail, date, pw })
+    res.status(201).json(creatdPost);
 })
 
-// 해당 비밀번호를 가진 게시글 수정하기
+// 해당 비밀번호를 가진 게시글 수정하기 ( 수정해야함. )
 router.put("/posts/:pw", async (req, res) => {
     const { pw } = req.params
-    const { title, name, datail, date } = req.body
+    const { title, name, datail} = req.body
 
     const post = await Posts.find({ pw })
     if (post.length) {
@@ -76,7 +82,7 @@ router.put("/posts/:pw", async (req, res) => {
     }
 })
 
-// 해당 비밀번호를 가진 게시글 삭제
+// 해당 비밀번호를 가진 게시글 삭제 ( 수정해야함. )
 router.delete("/posts/:pw", async (req, res) => {
     const { pw } = req.params
 

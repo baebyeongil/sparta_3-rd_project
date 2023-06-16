@@ -3,6 +3,7 @@ const app = express();
 const port = 3001;
 
 const postRouter = require("./routes/post.js")
+const commentRouter = require("./routes/comment.js")
 
 const connect = require("./schemas")
 
@@ -10,7 +11,7 @@ connect()
 
 app.use(express.json())
 
-app.use("/api", [postRouter]);
+app.use("/api", [postRouter, commentRouter]);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');

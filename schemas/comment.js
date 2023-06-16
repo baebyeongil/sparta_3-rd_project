@@ -1,13 +1,24 @@
 const mongoose = require("mongoose");
+const Posts = require("../schemas/post.js")
 
 const commentSchema = new mongoose.Schema({
+    postIdnum: {
+        type: Number,
+        requird: true,
+    },
+    commentId: {
+        type: Number,
+        required: true,
+        unique: true,
+        select: false
+    },
     username: {
         type: String,
         requird: true,
     },
     usercommet: {
         type: String,
-        required: true, 
+        required: true,
     },
     date: {
         type: Date,
@@ -15,13 +26,15 @@ const commentSchema = new mongoose.Schema({
         required: true,
     },
     commentpw: {
-        type : Number,
+        type: Number,
         required: true,
         unique: true,
         select: false
     }
-},{
+}, {
     versionKey: false,
 })
 
-module.exports = mongoose.model("Comments", commentSchema);
+const comnnets = mongoose.model("Comments", commentSchema);
+
+module.exports = comnnets
