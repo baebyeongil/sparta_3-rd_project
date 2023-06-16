@@ -11,7 +11,7 @@ const postSchema = new mongoose.Schema({
         type: String,
         requird: true,
     },
-    name: {
+    postname: {
         type: String,
         requird: true,
     },
