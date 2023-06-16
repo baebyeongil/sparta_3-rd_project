@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Posts = require("../schemas/post.js")
 
 const commentSchema = new mongoose.Schema({
-    postIdnum: {
+    postId: {
         type: Number,
         requird: true,
     },
@@ -28,7 +28,6 @@ const commentSchema = new mongoose.Schema({
     commentpw: {
         type: Number,
         required: true,
-        unique: true,
         select: false
     }
 }, {

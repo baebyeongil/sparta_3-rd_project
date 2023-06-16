@@ -6,16 +6,16 @@ const Posts = require("../schemas/post.js");
 // 입력하고자하는 postIdnum과 postId값 일치 확인 > postId 값을 가진 게시글 확인 > ( postIdnum과 postId값 일치 확인을 해주는 이유는 해당 게시글에 댓글을 달기 위해서 )
 // usercommet 입력 여부 확인 > commentId 중복 여부 확인 > commentpw 중복 여부 확인 > 입력
 router.post("/comment/:postId", async (req, res) => {
-    const postids = req.params.postId
-    const post = await Posts.find({ "postId": postids })
+    const Postid = req.params.postId
+    const post = await Posts.find({ "postId": Postid })
 
-    const { postIdnum, commentId, username, usercommet, date, commentpw } = req.body
+    const { postId, commentId, username, usercommet, commentpw } = req.body
 
     const comment = await Comments.find({ "commentpw": commentpw })
     const Id = await Comments.find({ "commentId": commentId })
     // const postIdnums = await Comments.find({ "postIdnum": postIdnum })
 
-    if (postIdnum != postids) {
+    if (postId != Postid) {
         return res.status(404).json({
             success: false,
             errorMessage: "입력하고자 하는 게시글Id 값을 확인해주세요."
@@ -45,14 +45,14 @@ router.post("/comment/:postId", async (req, res) => {
             errorMessage: "다른 비밀번호를 입력해주세요."
         })
     }
-    const creatdComment = await Comments.create({ postIdnum, commentId, username, usercommet, date, commentpw })
+    const creatdComment = await Comments.create({ postId, commentId, username, usercommet, commentpw })
     return res.status(201).json(creatdComment)
 })
 
-// commentId 일치하는 댓글 여부 확인 > 출력 
-router.get("/comment/:commentId", async (req, res) => {
-    const commentId = req.params.postIdnum
-    const coment = await Comments.find({ "commentId": commentId })
+// postId 일치하는 댓글 여부 확인 > 출력 
+router.get("/comment/:postId", async (req, res) => {
+    const postId = req.params.postId
+    const coment = await Comments.find({ "postId": postId })
     coment.sort(
         function (prev, next) {
             if (prev.date > next.date) { return -1 }
@@ -62,7 +62,7 @@ router.get("/comment/:commentId", async (req, res) => {
     )
     if (!coment.length) {
         return res.status(404).json({
-            errorMessage: "해당 댓글을 찾을 수 없습니다.."
+            errorMessage: "해당 게시글의 댓글이 없습니다."
         })
     }
     else {
@@ -73,12 +73,11 @@ router.get("/comment/:commentId", async (req, res) => {
 // commentId 일치하는 댓글 여부 확인 > 입력한 commentpw 와 일치하는지 확인 > 수정
 router.put("/comment/:commentId", async (req, res) => {
     const commentid = req.params.commentId
-    const comment = await Comments.find({ "commentId": commentid })
-
+    
     const { usercommet, commentpw } = req.body
-    const comments = await Comments.find({ "commentpw": commentpw })
+    const findComment = await Comments.findOne({ "commentId": commentid }).select("+commentpw")
 
-    if (!comment.length) {
+    if (!findComment) {
         return res.status(404).json({
             success: false,
             errorMessage: "해당 댓글을 찾을 수 없습니다."
@@ -90,14 +89,14 @@ router.put("/comment/:commentId", async (req, res) => {
             errorMessage: "댓글 입력해주세요."
         })
     }
-    else if (!comments.length) {
+    else if (findComment.commentpw !== commentpw) {
         return res.status(400).json({
             success: false,
             errorMessage: "비밀번호가 틀렸습니다."
         })
     }
     await Comments.updateOne(
-        { commentpw: commentpw },
+        { commentId: commentid },
         {
             $set: {
                 usercommet: usercommet,
