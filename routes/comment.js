@@ -50,9 +50,9 @@ router.post("/comment/:postId", async (req, res) => {
 })
 
 // commentId 일치하는 댓글 여부 확인 > 출력 
-router.get("/comment/:postIdnum", async (req, res) => {
-    const postIdnum = req.params.postIdnum
-    const coment = await Comments.find({ "postIdnum": postIdnum })
+router.get("/comment/:commentId", async (req, res) => {
+    const commentId = req.params.postIdnum
+    const coment = await Comments.find({ "commentId": commentId })
     coment.sort(
         function (prev, next) {
             if (prev.date > next.date) { return -1 }
