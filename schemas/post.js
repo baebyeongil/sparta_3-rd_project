@@ -24,10 +24,9 @@ const postSchema = new mongoose.Schema({
         default: Date.now,
         required: true,
     },
-    pw: {
+    postpw: {
         type: Number,
         required: true,
-        unique: true,
         select: false
     }
 }, {

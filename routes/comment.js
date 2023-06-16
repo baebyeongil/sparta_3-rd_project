@@ -115,10 +115,16 @@ router.delete("/comment/:commentId", async (req, res) => {
     const commentid = req.params.commentId
     const comment = await Comments.find({ "commentId": commentid })
 
-    const { commentpw } = req.body
+    const { commentId, commentpw } = req.body
     const comments = await Comments.find({ "commentpw": commentpw })
 
-    if (!comment.length) {
+    if (commentid !== commentId) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "삭제할려는 댓글의 id값을 확인해주세요."
+        })
+    }
+    else if (!comment.length) {
         return res.status(404).json({
             success: false,
             errorMessage: "해당 댓글을 찾을 수 없습니다."

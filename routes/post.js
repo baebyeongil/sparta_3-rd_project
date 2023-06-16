@@ -21,7 +21,7 @@ router.get("/posts", async (req, res) => {
     }
 })
 
-// 해당 title을 가진 게시글 조회
+// postId 값을 가진 게시글 조회
 router.get("/posts/:postId", async (req, res) => {
     const postId = req.params.postId
     console.log(postId)
@@ -36,67 +36,86 @@ router.get("/posts/:postId", async (req, res) => {
     }
 })
 
-// 게시글 작성 ( 중복 비밀번호 사용 불가능 )
+// 작성할려는 게시글 postId 중복 여부 확인 > 작성 
 router.post("/posts", async (req, res) => {
-    const { postId, title, name, datail, date, pw } = req.body
-    const postspw = await Posts.find({pw})
-    const postsid = await Posts.find({postId})
-    if (postspw.length) {
-        return res.status(400).json({
-            success: false,
-            errorMessage: "이미 사용된 비밀번호 입니다."
-        })
-    }
-    else if (postsid.length) {
+    const { postId, title, postname, datail, date, postpw } = req.body
+    const postsid = await Posts.find({ postId })
+    if (postsid.length) {
         return res.status(400).json({
             success: false,
             errorMessage: "이미 사용된 postId 입니다."
         })
     }
-    const creatdPost = await Posts.create({ postId, title, name, datail, date, pw })
+    const creatdPost = await Posts.create({ postId, title, postname, datail, date, postpw })
     res.status(201).json(creatdPost);
 })
 
-// 해당 비밀번호를 가진 게시글 수정하기 ( 수정해야함. )
-router.put("/posts/:pw", async (req, res) => {
-    const { pw } = req.params
-    const { title, name, datail} = req.body
+// postId 값을 가진 게시글 찾기 > 입력한 pw 일치 여부 확인 > 수정
+router.put("/posts/:postId", async (req, res) => {
+    const { postid } = req.params
+    const { title, datail, postpw } = req.body
 
-    const post = await Posts.find({ pw })
-    if (post.length) {
-        await Posts.updateOne(
-            { pw: pw },
-            { $set: { 
+    const post = await Posts.findOne({ postid }).select("+postpw")
+
+    if (!post) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "해당 게시글을 찾을 수 없습니다."
+        })
+    }
+    else if (post.postpw !== postpw) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "비밀번호가 일치하지 않습니다."
+        })
+    }
+    await Posts.updateOne(
+        { postId: postid },
+        {
+            $set: {
                 title: title,
-                name: name,
                 datail: datail,
                 date: new Date,
-            }}
-        )
-        res.status(200).json({ success: true })
-    }
-    else if (!post.length) {
-        res.status(404).json({
-            errorMessage:"비밀번호가 틀렸습니다."
-        })
-    }
+            }
+        }
+    )
+    return res.status(200).json({
+        success: true,
+        message: "해당 게시글이 수정되었습니다."
+    })
 })
 
-// 해당 비밀번호를 가진 게시글 삭제 ( 수정해야함. )
-router.delete("/posts/:pw", async (req, res) => {
-    const { pw } = req.params
+// 삭제할려는 게시글 일치 여부 확인 > postId 값을 가진 게시글 찾기 > 비밀번호 일치 여부 확인 > 삭제
+router.delete("/posts/:postId", async (req, res) => {
+    const postid = req.params.postId
+    const { postId, postpw } = req.body
+    const post = await Posts.findOne({ postId }).select("+postpw")
 
-    const post = await Posts.find({ pw })
-    if (!post.length) {
-        res.status(404).json({
-            errorMessage: "비밀번호가 틀렸습니다."
+    if (postid != postId) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "삭제할려는 게시글의 id값을 확인해주세요."
         })
-        return
+    }
+    else if (!post) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "해당 게시글을 찾을 수 없습니다."
+        })
+    }
+    else if (post.postpw !== postpw) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "비밀번호가 일치하지 않습니다."
+        })
     }
     else {
-        await Posts.deleteOne({pw})
+        await Posts.deleteOne({ postId })
+        return res.status(200).json({
+            success: true,
+            message: "해당 댓글이 삭제되었습니다."
+        })
     }
-        res.json("게시글이 삭제되었습니다.")
 })
 
 module.exports = router
